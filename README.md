@@ -4,7 +4,7 @@ Data transfer for HF PyTorch model
 
 ### Installation
 
-Install transformers (https://huggingface.co/docs/transformers/installation) with 'pip install transformers'.
+Install transformers (https://huggingface.co/docs/transformers/installation) with `pip install transformers`.
 
 ### Update the HF model
 
