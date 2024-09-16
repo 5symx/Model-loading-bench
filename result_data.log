@@ -1,0 +1,117 @@
+16:12:49-764978 0.24 start loading: meta-llama/Llama-2-7b-chat-hf (cpu: 0.467 gpu: 0.261)               run_mmlu.py:46
+16:12:54-132276 4.37 start evaluation: meta-llama/Llama-2-7b-chat-hf (cpu: 8.976 gpu: 3.763)            run_mmlu.py:46
+16:12:54-133366 0.001 Testing abstract_algebra ... (cpu: 8.976 gpu: 3.763)                              run_mmlu.py:46
+16:12:54-343372 0.21 start inference abstract_algebra ... (cpu: 8.976 gpu: 3.763)                       run_mmlu.py:46
+16:13:00-108803 5.765 Testing anatomy ... (cpu: 9.907 gpu: 6.302)                                       run_mmlu.py:46
+16:13:00-429410 0.321 start inference anatomy ... (cpu: 9.907 gpu: 6.302)                               run_mmlu.py:46
+16:13:06-868651 6.439 Testing astronomy ... (cpu: 9.911 gpu: 7.185)                                     run_mmlu.py:46
+16:13:07-452351 0.584 start inference astronomy ... (cpu: 9.911 gpu: 7.185)                             run_mmlu.py:46
+16:13:19-570807 12.118 Testing business_ethics ... (cpu: 9.915 gpu: 9.388)                              run_mmlu.py:46
+16:13:19-978892 0.408 start inference business_ethics ... (cpu: 9.915 gpu: 9.388)                       run_mmlu.py:46
+16:13:27-894394 7.915 Testing clinical_knowledge ... (cpu: 9.915 gpu: 9.388)                            run_mmlu.py:46
+16:13:28-590574 0.696 start inference clinical_knowledge ... (cpu: 9.915 gpu: 9.388)                    run_mmlu.py:46
+16:13:43-663290 15.073 Testing college_biology ... (cpu: 9.916 gpu: 9.455)                              run_mmlu.py:46
+16:13:44-124209 0.461 start inference college_biology ... (cpu: 9.916 gpu: 9.455)                       run_mmlu.py:46
+16:13:53-891487 9.767 Testing college_chemistry ... (cpu: 9.918 gpu: 9.455)                             run_mmlu.py:46
+16:13:54-172433 0.281 start inference college_chemistry ... (cpu: 9.918 gpu: 9.455)                     run_mmlu.py:46
+16:14:01-624557 7.452 Testing college_computer_science ... (cpu: 9.918 gpu: 9.455)                      run_mmlu.py:46
+16:14:02-114518 0.49 start inference college_computer_science ... (cpu: 9.918 gpu: 9.455)               run_mmlu.py:46
+16:14:13-165237 11.051 Testing college_mathematics ... (cpu: 9.919 gpu: 10.427)                         run_mmlu.py:46
+16:14:13-463015 0.298 start inference college_mathematics ... (cpu: 9.919 gpu: 10.427)                  run_mmlu.py:46
+16:14:20-988014 7.525 Testing college_medicine ... (cpu: 9.919 gpu: 10.427)                             run_mmlu.py:46
+16:14:21-603929 0.616 start inference college_medicine ... (cpu: 9.919 gpu: 10.427)                     run_mmlu.py:46
+16:14:38-333668 16.73 Testing college_physics ... (cpu: 9.919 gpu: 14.375)                              run_mmlu.py:46
+16:14:38-630410 0.297 start inference college_physics ... (cpu: 9.919 gpu: 14.375)                      run_mmlu.py:46
+16:14:45-167624 6.537 Testing computer_security ... (cpu: 9.919 gpu: 14.375)                            run_mmlu.py:46
+16:14:45-418561 0.251 start inference computer_security ... (cpu: 9.919 gpu: 14.375)                    run_mmlu.py:46
+16:14:50-801789 5.383 Testing conceptual_physics ... (cpu: 9.919 gpu: 14.375)                           run_mmlu.py:46
+16:14:51-309232 0.508 start inference conceptual_physics ... (cpu: 9.919 gpu: 14.375)                   run_mmlu.py:46
+16:15:00-503911 9.195 Testing econometrics ... (cpu: 9.919 gpu: 14.375)                                 run_mmlu.py:46
+16:15:00-903003 0.399 start inference econometrics ... (cpu: 9.919 gpu: 14.375)                         run_mmlu.py:46
+16:15:10-395181 9.492 Testing electrical_engineering ... (cpu: 9.919 gpu: 14.375)                       run_mmlu.py:46
+16:15:10-720045 0.325 start inference electrical_engineering ... (cpu: 9.919 gpu: 14.375)               run_mmlu.py:46
+16:15:19-102304 8.382 Testing elementary_mathematics ... (cpu: 9.919 gpu: 14.375)                       run_mmlu.py:46
+16:15:20-176331 1.074 start inference elementary_mathematics ... (cpu: 9.919 gpu: 14.375)               run_mmlu.py:46
+16:15:47-115736 26.939 Testing formal_logic ... (cpu: 9.919 gpu: 14.375)                                run_mmlu.py:46
+16:15:47-555337 0.44 start inference formal_logic ... (cpu: 9.919 gpu: 14.375)                          run_mmlu.py:46
+16:15:58-038384 10.483 Testing global_facts ... (cpu: 9.919 gpu: 14.375)                                run_mmlu.py:46
+16:15:58-290828 0.252 start inference global_facts ... (cpu: 9.919 gpu: 14.375)                         run_mmlu.py:46
+16:16:03-954977 5.664 Testing high_school_biology ... (cpu: 9.919 gpu: 14.375)                          run_mmlu.py:46
+16:16:04-988045 1.033 start inference high_school_biology ... (cpu: 9.919 gpu: 14.375)                  run_mmlu.py:46
+16:16:27-021354 22.033 Testing high_school_chemistry ... (cpu: 9.919 gpu: 14.375)                       run_mmlu.py:46
+16:16:27-567510 0.546 start inference high_school_chemistry ... (cpu: 9.919 gpu: 14.375)                run_mmlu.py:46
+16:16:41-417003 13.849 Testing high_school_computer_science ... (cpu: 9.919 gpu: 14.375)                run_mmlu.py:46
+16:16:41-923341 0.506 start inference high_school_computer_science ... (cpu: 9.919 gpu: 14.375)         run_mmlu.py:46
+16:16:55-255115 13.332 Testing high_school_european_history ... (cpu: 9.919 gpu: 14.375)                run_mmlu.py:46
+16:17:03-299457 8.044 start inference high_school_european_history ... (cpu: 9.919 gpu: 14.375)         run_mmlu.py:46
+16:17:46-706750 43.407 Testing high_school_geography ... (cpu: 9.92 gpu: 18.277)                        run_mmlu.py:46
+16:17:47-267172 0.56 start inference high_school_geography ... (cpu: 9.92 gpu: 18.277)                  run_mmlu.py:46
+16:17:57-320341 10.053 Testing high_school_government_and_politics ... (cpu: 9.92 gpu: 18.277)          run_mmlu.py:46
+16:17:58-001051 0.681 start inference high_school_government_and_politics ... (cpu: 9.92 gpu: 18.277)   run_mmlu.py:46
+16:18:10-269603 12.269 Testing high_school_macroeconomics ... (cpu: 9.92 gpu: 18.277)                   run_mmlu.py:46
+16:18:11-402682 1.133 start inference high_school_macroeconomics ... (cpu: 9.92 gpu: 18.277)            run_mmlu.py:46
+16:18:32-070436 20.668 Testing high_school_mathematics ... (cpu: 9.92 gpu: 18.277)                      run_mmlu.py:46
+16:18:32-793424 0.723 start inference high_school_mathematics ... (cpu: 9.92 gpu: 18.277)               run_mmlu.py:46
+16:18:50-885353 18.092 Testing high_school_microeconomics ... (cpu: 9.92 gpu: 18.277)                   run_mmlu.py:46
+16:18:51-556794 0.671 start inference high_school_microeconomics ... (cpu: 9.92 gpu: 18.277)            run_mmlu.py:46
+16:19:04-415581 12.859 Testing high_school_physics ... (cpu: 9.92 gpu: 18.277)                          run_mmlu.py:46
+16:19:04-892668 0.477 start inference high_school_physics ... (cpu: 9.92 gpu: 18.277)                   run_mmlu.py:46
+16:19:16-139859 11.247 Testing high_school_psychology ... (cpu: 9.92 gpu: 18.277)                       run_mmlu.py:46
+16:19:18-110208 1.97 start inference high_school_psychology ... (cpu: 9.92 gpu: 18.277)                 run_mmlu.py:46
+16:19:56-605432 38.495 Testing high_school_statistics ... (cpu: 9.92 gpu: 18.277)                       run_mmlu.py:46
+16:19:57-611642 1.006 start inference high_school_statistics ... (cpu: 9.92 gpu: 18.277)                run_mmlu.py:46
+16:20:21-749242 24.138 Testing high_school_us_history ... (cpu: 9.92 gpu: 18.277)                       run_mmlu.py:46
+16:20:28-742372 6.993 start inference high_school_us_history ... (cpu: 9.92 gpu: 18.277)                run_mmlu.py:46
+16:21:19-918643 51.176 Testing high_school_world_history ... (cpu: 9.92 gpu: 18.277)                    run_mmlu.py:46
+16:21:22-149926 2.231 start inference high_school_world_history ... (cpu: 9.92 gpu: 18.277)             run_mmlu.py:46
+16:22:18-667485 56.518 Testing human_aging ... (cpu: 9.92 gpu: 18.277)                                  run_mmlu.py:46
+16:22:19-179412 0.512 start inference human_aging ... (cpu: 9.92 gpu: 18.277)                           run_mmlu.py:46
+16:22:28-407716 9.228 Testing human_sexuality ... (cpu: 9.92 gpu: 18.277)                               run_mmlu.py:46
+16:22:28-731966 0.324 start inference human_sexuality ... (cpu: 9.92 gpu: 18.277)                       run_mmlu.py:46
+16:22:35-169804 6.438 Testing international_law ... (cpu: 9.92 gpu: 18.277)                             run_mmlu.py:46
+16:22:35-701695 0.532 start inference international_law ... (cpu: 9.92 gpu: 18.277)                     run_mmlu.py:46
+16:22:46-159858 10.458 Testing jurisprudence ... (cpu: 9.93 gpu: 18.277)                                run_mmlu.py:46
+16:22:46-466421 0.307 start inference jurisprudence ... (cpu: 9.93 gpu: 18.277)                         run_mmlu.py:46
+16:22:52-277893 5.811 Testing logical_fallacies ... (cpu: 9.931 gpu: 18.277)                            run_mmlu.py:46
+16:22:52-792797 0.515 start inference logical_fallacies ... (cpu: 9.931 gpu: 18.277)                    run_mmlu.py:46
+16:23:02-664685 9.872 Testing machine_learning ... (cpu: 9.931 gpu: 18.277)                             run_mmlu.py:46
+16:23:03-122955 0.458 start inference machine_learning ... (cpu: 9.931 gpu: 18.277)                     run_mmlu.py:46
+16:23:12-837537 9.715 Testing management ... (cpu: 9.931 gpu: 18.277)                                   run_mmlu.py:46
+16:23:13-061123 0.224 start inference management ... (cpu: 9.931 gpu: 18.277)                           run_mmlu.py:46
+16:23:16-865295 3.804 Testing marketing ... (cpu: 9.931 gpu: 18.277)                                    run_mmlu.py:46
+16:23:17-566714 0.701 start inference marketing ... (cpu: 9.931 gpu: 18.277)                            run_mmlu.py:46
+16:23:30-450295 12.884 Testing medical_genetics ... (cpu: 9.931 gpu: 18.277)                            run_mmlu.py:46
+16:23:30-697454 0.247 start inference medical_genetics ... (cpu: 9.931 gpu: 18.277)                     run_mmlu.py:46
+16:23:35-447437 4.75 Testing miscellaneous ... (cpu: 9.931 gpu: 18.277)                                 run_mmlu.py:46
+16:23:36-930659 1.483 start inference miscellaneous ... (cpu: 9.931 gpu: 18.277)                        run_mmlu.py:46
+16:24:09-630410 32.7 Testing moral_disputes ... (cpu: 9.931 gpu: 18.277)                                run_mmlu.py:46
+16:24:10-806471 1.176 start inference moral_disputes ... (cpu: 9.931 gpu: 18.277)                       run_mmlu.py:46
+16:24:33-109551 22.303 Testing moral_scenarios ... (cpu: 9.931 gpu: 18.277)                             run_mmlu.py:46
+16:24:36-475730 3.366 start inference moral_scenarios ... (cpu: 9.931 gpu: 18.277)                      run_mmlu.py:46
+16:25:52-543535 76.068 Testing nutrition ... (cpu: 9.931 gpu: 18.277)                                   run_mmlu.py:46
+16:25:53-703672 1.16 start inference nutrition ... (cpu: 9.931 gpu: 18.277)                             run_mmlu.py:46
+16:26:18-997865 25.294 Testing philosophy ... (cpu: 9.931 gpu: 18.277)                                  run_mmlu.py:46
+16:26:19-717611 0.72 start inference philosophy ... (cpu: 9.931 gpu: 18.277)                            run_mmlu.py:46
+16:26:33-899877 14.182 Testing prehistory ... (cpu: 9.931 gpu: 18.277)                                  run_mmlu.py:46
+16:26:35-041282 1.141 start inference prehistory ... (cpu: 9.931 gpu: 18.277)                           run_mmlu.py:46
+16:26:58-538076 23.497 Testing professional_accounting ... (cpu: 9.931 gpu: 18.277)                     run_mmlu.py:46
+16:26:59-687150 1.149 start inference professional_accounting ... (cpu: 9.931 gpu: 18.277)              run_mmlu.py:46
+16:27:27-476256 27.789 Testing professional_law ... (cpu: 9.931 gpu: 18.277)                            run_mmlu.py:46
+16:27:45-687109 18.211 start inference professional_law ... (cpu: 9.931 gpu: 18.277)                    run_mmlu.py:46
+16:34:28-836728 403.15 Testing professional_medicine ... (cpu: 9.931 gpu: 18.294)                       run_mmlu.py:46
+16:34:30-706769 1.87 start inference professional_medicine ... (cpu: 9.931 gpu: 18.294)                 run_mmlu.py:46
+16:35:20-246878 49.54 Testing professional_psychology ... (cpu: 9.931 gpu: 18.294)                      run_mmlu.py:46
+16:35:22-746041 2.499 start inference professional_psychology ... (cpu: 9.931 gpu: 18.294)              run_mmlu.py:46
+16:36:10-652798 47.907 Testing public_relations ... (cpu: 9.931 gpu: 18.294)                            run_mmlu.py:46
+16:36:10-985829 0.333 start inference public_relations ... (cpu: 9.931 gpu: 18.294)                     run_mmlu.py:46
+16:36:17-317547 6.332 Testing security_studies ... (cpu: 9.931 gpu: 18.294)                             run_mmlu.py:46
+16:36:19-487002 2.169 start inference security_studies ... (cpu: 9.931 gpu: 18.294)                     run_mmlu.py:46
+16:37:06-010382 46.523 Testing sociology ... (cpu: 9.931 gpu: 18.294)                                   run_mmlu.py:46
+16:37:06-663300 0.653 start inference sociology ... (cpu: 9.931 gpu: 18.294)                            run_mmlu.py:46
+16:37:18-924702 12.261 Testing us_foreign_policy ... (cpu: 9.932 gpu: 18.294)                           run_mmlu.py:46
+16:37:19-247911 0.323 start inference us_foreign_policy ... (cpu: 9.932 gpu: 18.294)                    run_mmlu.py:46
+16:37:24-866386 5.618 Testing virology ... (cpu: 9.932 gpu: 18.294)                                     run_mmlu.py:46
+16:37:25-280676 0.414 start inference virology ... (cpu: 9.932 gpu: 18.294)                             run_mmlu.py:46
+16:37:33-369985 8.089 Testing world_religions ... (cpu: 9.932 gpu: 18.294)                              run_mmlu.py:46
+16:37:33-683366 0.313 start inference world_religions ... (cpu: 9.932 gpu: 18.294)                      run_mmlu.py:46
+16:37:39-734179 6.051 finish evaluation world_religions ... (cpu: 9.932 gpu: 18.294)                    run_mmlu.py:46
