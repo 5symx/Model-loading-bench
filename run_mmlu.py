@@ -18,6 +18,14 @@ from rich.pretty import install as pretty_install
 from rich.traceback import install as traceback_install
 from rich.console import Console
 import warnings
+import pprint
+
+snapshot_memory = False
+if snapshot_memory:
+    torch.cuda.memory._record_memory_history()
+# new_alloc = torch.cuda.memory.CUDAPluggableAllocator('alloc.so', 'my_malloc', 'my_free')
+# old = torch.cuda.memory.get_allocator_backend()
+# torch.cuda.memory.change_current_allocator(new_alloc)
 
 class Logger:
     def __init__(self):
@@ -56,63 +64,64 @@ class Timer:
         print(f"{msg} : take {sum(self.time)  / len(self.time)} second ")
         print(f"time list is  {self.time}  ")
 
+# For getting quick result, only choose some of tasks for testing
 TASKS = [
         'abstract_algebra',
         'anatomy',
         'astronomy',
         'business_ethics',
         'clinical_knowledge',
-        'college_biology',
-        'college_chemistry',
-        'college_computer_science',
-        'college_mathematics',
-        'college_medicine',
-        'college_physics',
-        'computer_security',
-        'conceptual_physics',
-        'econometrics',
-        'electrical_engineering',
-        'elementary_mathematics',
-        'formal_logic',
-        'global_facts',
-        'high_school_biology',
-        'high_school_chemistry',
-        'high_school_computer_science',
-        'high_school_european_history',
-        'high_school_geography',
-        'high_school_government_and_politics',
-        'high_school_macroeconomics',
-        'high_school_mathematics',
-        'high_school_microeconomics',
-        'high_school_physics',
-        'high_school_psychology',
-        'high_school_statistics',
-        'high_school_us_history',
-        'high_school_world_history',
-        'human_aging',
-        'human_sexuality',
-        'international_law',
-        'jurisprudence',
-        'logical_fallacies',
-        'machine_learning',
-        'management',
-        'marketing',
-        'medical_genetics',
-        'miscellaneous',
-        'moral_disputes',
-        'moral_scenarios',
-        'nutrition',
-        'philosophy',
-        'prehistory',
-        'professional_accounting',
-        'professional_law',
-        'professional_medicine',
-        'professional_psychology',
-        'public_relations',
-        'security_studies', 
-        'sociology',
-        'us_foreign_policy',
-        'virology',
+        # 'college_biology',
+        # 'college_chemistry',
+        # 'college_computer_science',
+        # 'college_mathematics',
+        # 'college_medicine',
+        # 'college_physics',
+        # 'computer_security',
+        # 'conceptual_physics',
+        # 'econometrics',
+        # 'electrical_engineering',
+        # 'elementary_mathematics',
+        # 'formal_logic',
+        # 'global_facts',
+        # 'high_school_biology',
+        # 'high_school_chemistry',
+        # 'high_school_computer_science',
+        # 'high_school_european_history',
+        # 'high_school_geography',
+        # 'high_school_government_and_politics',
+        # 'high_school_macroeconomics',
+        # 'high_school_mathematics',
+        # 'high_school_microeconomics',
+        # 'high_school_physics',
+        # 'high_school_psychology',
+        # 'high_school_statistics',
+        # 'high_school_us_history',
+        # 'high_school_world_history',
+        # 'human_aging',
+        # 'human_sexuality',
+        # 'international_law',
+        # 'jurisprudence',
+        # 'logical_fallacies',
+        # 'machine_learning',
+        # 'management',
+        # 'marketing',
+        # 'medical_genetics',
+        # 'miscellaneous',
+        # 'moral_disputes',
+        # 'moral_scenarios',
+        # 'nutrition',
+        # 'philosophy',
+        # 'prehistory',
+        # 'professional_accounting',
+        # 'professional_law',
+        # 'professional_medicine',
+        # 'professional_psychology',
+        # 'public_relations',
+        # 'security_studies', 
+        # 'sociology',
+        # 'us_foreign_policy',
+        # 'virology',
         'world_religions']
 
 choices = ["A", "B", "C", "D"]
@@ -169,20 +178,52 @@ def prepare_input(tokenizer, prompts):
     input_tokens = {k:input_tokens[k] for k in input_tokens if k in ["input_ids", "attention_mask"]}
     for t in input_tokens:
         if torch.is_tensor(input_tokens[t]):
-            input_tokens[t] = input_tokens[t].to('cuda')
+            input_tokens[t] = input_tokens[t].to(args.device)
 
     return input_tokens
 
-def load(ckpt_dir, model_type):
+def garbage_collect():
+    import gc
+    gc.collect()
+    with torch.no_grad():
+        torch.cuda.empty_cache()
+    with torch.cuda.device('cuda'):
+        torch.cuda.empty_cache()
+        torch.cuda.ipc_collect()
+    gc.collect()
+    logger.trace('garbage collect')
+
+def load(ckpt_dir, model_type, update_model_file = False, use_meta_load = True):
     n_gpus = torch.cuda.device_count()
 
     if model_type == 'llama':
-        access_token = "hf_*"
+        access_token = "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"
+        model_name = "meta-llama/Llama-2-7b-chat-hf"
+        filename = './test_model.pt'
+        if update_model_file:
+            model = LlamaForCausalLM.from_pretrained(model_name, token=access_token)
+            torch.save(model.state_dict(), filename)
+            logger.trace('save model')
+            del model
+            garbage_collect()
+        
         # we use tensor parallel for loading llama
         tokenizer = LlamaTokenizer.from_pretrained(ckpt_dir, token=access_token, use_fast=False, padding_side="left")
+        if use_meta_load:
+            with torch.device('meta'):
+                model = LlamaForCausalLM.from_pretrained(model_name)
+            weights = torch.load(filename, mmap=True, weights_only=True) # float32
+            logger.trace(f'load weights')
+            model.load_state_dict(weights, strict=True, assign=True) # device = cpu
+            logger.trace(f'apply weigths to dict: {len(weights)}')
+            model = model.to(args.device, dtype=torch.float16)#float16
+            garbage_collect()
+            del weights
+        else:
         
-        model = LlamaForCausalLM.from_pretrained(ckpt_dir, token=access_token, low_cpu_mem_usage = True, torch_dtype=torch.float16)
-        model = tp.tensor_parallel(model, [i for i in range(n_gpus)])
+            model = LlamaForCausalLM.from_pretrained(ckpt_dir, token=access_token, low_cpu_mem_usage = True, torch_dtype=torch.float16)
+            # model = tp.tensor_parallel(model, [i for i in range(n_gpus)])
+            model.to(args.device) # update
 
         tokenizer.pad_token_id = 0 if tokenizer.pad_token_id is None else tokenizer.pad_token_id
         tokenizer.bos_token_id = 1
@@ -198,7 +239,7 @@ def load(ckpt_dir, model_type):
             else:
                 tokenizer.pad_token_id = 0
 
-
+    
     model.eval()
 
     return model, tokenizer
@@ -226,17 +267,18 @@ def batch_infer(model, tokenizer, prompts):
     return answers
 
 def main(ckpt_dir: str, param_size: str, model_type: str):
-    timer_loading = Timer()
-    timer_computing = Timer()
-    timer_encoding = Timer()
-
+    
+    update_model_file = False
+    use_meta_load = True
     logger.start()
 
     run_results = {}
     output_filename = 'run_results_%s_%sb.json' % (model_type, param_size)
 
     logger.trace(f'start loading: {ckpt_dir}')
-    model, tokenizer = load(ckpt_dir, model_type)
+    model, tokenizer = load(ckpt_dir, model_type,update_model_file, use_meta_load)    
+
+
     logger.trace(f'start evaluation: {ckpt_dir}')
     start_time = time.time()
     for task in TASKS:
@@ -248,8 +290,8 @@ def main(ckpt_dir: str, param_size: str, model_type: str):
         for i in range(test_df.shape[0]):
             # get prompt and make sure it fits
             k = args.ntrain
-            prompt_end = format_example(test_df, i, include_answer=False)
-            train_prompt = gen_prompt(dev_df, task, k)
+            prompt_end = format_example(test_df, i, include_answer=False)# test data
+            train_prompt = gen_prompt(dev_df, task, k) # 5-shot 
             prompt = train_prompt + prompt_end
             while len(tokenizer.tokenize(prompt)) + 1> 2048: # bos token
                 prompt_split = prompt.split("\n\n")
@@ -266,9 +308,11 @@ def main(ckpt_dir: str, param_size: str, model_type: str):
         json.dump(run_results, f, ensure_ascii=False, indent=2)
         
     logger.trace(f'finish evaluation %s ...' % task)
-    compute_metric(output_filename)
+    compute_metric(output_filename)# accuracy
     end_time = time.time()
     print("total run time %.2f" % (end_time - start_time))
+    if snapshot_memory: # view on website https://pytorch.org/memory_viz
+        torch.cuda.memory._dump_snapshot("my_snapshot.pickle")
     
     
 
@@ -279,6 +323,7 @@ if __name__ == "__main__":
     parser.add_argument('--model_type', type=str, required=True)
     parser.add_argument('--data_dir', type=str, default='data/')
     parser.add_argument('--ntrain', type=int, default=5)
+    parser.add_argument('--device', type=str, default='cuda', choices=['cpu', 'cuda'], required=False, help='load initial target')
     args = parser.parse_args()
     
     main(args.ckpt_dir, args.param_size, args.model_type)
