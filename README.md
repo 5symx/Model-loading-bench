@@ -10,7 +10,7 @@ In order to avoid the error with 'meta device no data', update the `register_buf
 
 1. Download dataset through Original implementation of MMLU. https://github.com/hendrycks/test
 
-2. Set transformer version. `pip install transformers==4.35.2` 
+2. Install transformer. `pip install transformers` 
 
 3. Run MMLU evaluation benchmark. 
    ```bash
@@ -23,3 +23,16 @@ In order to avoid the error with 'meta device no data', update the `register_buf
    ```bash
    python extract_log.py
    ```
+
+# Llave_bench_in_the_wild benchmark 
+
+1. Download dataset through Huggingface. https://huggingface.co/datasets/liuhaotian/llava-bench-in-the-wild
+   ```bash
+   git lfs install
+   git clone https://huggingface.co/datasets/liuhaotian/llava-bench-in-the-wild
+   ```
+2. Run Llava_bench evaluation refer to https://github.com/haotian-liu/LLaVA/blob/main/docs/Evaluation.md
+   ```bash
+   python bench_vqa.py
+   ```
+
