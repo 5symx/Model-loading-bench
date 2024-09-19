@@ -1,0 +1,3 @@
+[submodule "llava-bench-in-the-wild"]
+	path = llava-bench-in-the-wild
+	url = https://huggingface.co/datasets/liuhaotian/llava-bench-in-the-wild
