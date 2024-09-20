@@ -32,4 +32,8 @@ In order to avoid the error with 'meta device no data', update the `register_buf
    ```bash
    python llava/bench_vqa.py
    ```
- 3. Todo
+3. Conver the answer format for evaluation 
+   ```bash
+   python llava/convert_answers.py --src answers/llava.jsonl --dst result/llava.json
+   ```
+4. Evaluation Grading by https://huggingface.co/spaces/whyu/MM-Vet_Evaluator
