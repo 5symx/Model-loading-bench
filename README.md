@@ -6,7 +6,7 @@ Data transfer through device for HF PyTorch model
 
 In order to avoid the error with 'meta device no data', update the `register_buffer` function in the LLAVA model in `transformers/models/llama/modeling_llama.py` and `transformers/models/clip/modeling_clip.py` by setting the parameter to `persistent=True`. 
 
-# MMLU benchmark 
+# MMLU benchmark for Llama
 
 1. Download dataset through Original implementation of MMLU. https://github.com/hendrycks/test
 
@@ -24,15 +24,12 @@ In order to avoid the error with 'meta device no data', update the `register_buf
    python extract_log.py
    ```
 
-# Llave_bench_in_the_wild benchmark 
+# MM-VET benchmark for Llava
 
-1. Download dataset through Huggingface. https://huggingface.co/datasets/liuhaotian/llava-bench-in-the-wild
-   ```bash
-   git lfs install
-   git clone https://huggingface.co/datasets/liuhaotian/llava-bench-in-the-wild
-   ```
+1. Download dataset from https://github.com/yuweihao/MM-Vet/releases/download/v1/mm-vet.zip
+
 2. Run Llava_bench evaluation refer to https://github.com/haotian-liu/LLaVA/blob/main/docs/Evaluation.md
    ```bash
    python bench_vqa.py
    ```
-
+ 3. Todo
