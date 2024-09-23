@@ -20,10 +20,7 @@ from rich.console import Console
 import warnings
 import pprint
 
-torch.cuda.memory._record_memory_history()
-# new_alloc = torch.cuda.memory.CUDAPluggableAllocator('alloc.so', 'my_malloc', 'my_free')
-# old = torch.cuda.memory.get_allocator_backend()
-# torch.cuda.memory.change_current_allocator(new_alloc)
+torch.cuda.memory._record_memory_history() # for profiling default False
 
 class Logger:
     def __init__(self):
@@ -171,11 +168,6 @@ def gen_prompt(train_df, subject, k=-1):
         prompt += format_example(train_df, i)
     return prompt
 
-
-# def custom_stopping_criteria(input_ids, score, **kwargs):
-#     stop_ids = [29871, 13, 13] # \n\n 
-#     return input_ids[-len(stop_ids)]
-
 def prepare_input(tokenizer, prompts):
     input_tokens = tokenizer.batch_encode_plus(prompts, return_tensors="pt", padding=True)
     input_tokens = {k:input_tokens[k] for k in input_tokens if k in ["input_ids", "attention_mask"]}
@@ -199,79 +191,38 @@ def garbage_collect():
 def load(ckpt_dir, model_type, update_model_file = True, use_meta_load = True):
     n_gpus = torch.cuda.device_count()
 
-    if model_type == 'llama':
-        access_token = "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"
-        model_name = "meta-llama/Llama-2-7b-chat-hf"
-        filename = './test_model.pt'
-        if update_model_file:
+    assert  model_type == 'llama'
+    access_token = "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"
+    model_name = "meta-llama/Llama-2-7b-chat-hf"
+    filename = './test_model.pt'
+    if update_model_file:
 
-            model = LlamaForCausalLM.from_pretrained(model_name, token=access_token)
-            torch.save(model.state_dict(), filename)
-            logger.trace('save model')
-            del model
-            garbage_collect()
-        
-        # we use tensor parallel for loading llama
-        tokenizer = LlamaTokenizer.from_pretrained(ckpt_dir, token=access_token, use_fast=False, padding_side="left")
-        if use_meta_load:
-            with torch.device('meta'):
-                model = LlamaForCausalLM.from_pretrained(model_name)
-            weights = torch.load(filename, mmap=True, weights_only=True) # float32
-            logger.trace(f'load weights')
-            model.load_state_dict(weights, strict=True, assign=True) # device = cpu
-            logger.trace(f'apply weigths to dict: {len(weights)}')
-            model = model.to(args.device, dtype=torch.float16)#float16
-            garbage_collect()
-            del weights
-        else:
-        
-            model = LlamaForCausalLM.from_pretrained(ckpt_dir, token=access_token, low_cpu_mem_usage = True, torch_dtype=torch.float16)
-            # model = tp.tensor_parallel(model, [i for i in range(n_gpus)])
-            model.to(args.device) # update
-
-        tokenizer.pad_token_id = 0 if tokenizer.pad_token_id is None else tokenizer.pad_token_id
-        tokenizer.bos_token_id = 1
-    # if model_type == 'llava':
-    #     filename = './test_model.pt'
-    #     model_name = "llava-hf/llava-1.5-7b-hf"#"meta-llama/Llama-2-7b-chat-hf"#"TinyLlama/TinyLlama-1.1B-Chat-v1.0"# "openai/clip-vit-base-patch32" 
-    #     if update_model_file:
-
-    #         model = LlavaForConditionalGeneration.from_pretrained(model_name)
-    #         torch.save(model.state_dict(), filename)
-    #         logger.trace('save model')
-    #         del model
-    #         garbage_collect()
-        
-    #     # we use tensor parallel for loading llama
-    #     tokenizer = LlamaTokenizer.from_pretrained(ckpt_dir, token=access_token, use_fast=False, padding_side="left")
-    #     if use_meta_load:
-    #         with torch.device('meta'):
-    #             model = LlavaForConditionalGeneration.from_pretrained(model_name)
-    #         weights = torch.load(filename, mmap=True, weights_only=True) # float32
-    #         logger.trace(f'load weights')
-    #         model.load_state_dict(weights, strict=True, assign=True) # device = cpu
-    #         logger.trace(f'apply weigths to dict: {len(weights)}')
-    #         model = model.to(args.device, dtype=torch.float16)#float16
-    #         garbage_collect()
-    #         del weights
-    #     else:
-        
-    #         model = LlavaForConditionalGeneration.from_pretrained(ckpt_dir, token=access_token, low_cpu_mem_usage = True, torch_dtype=torch.float16)
-    #         # model = tp.tensor_parallel(model, [i for i in range(n_gpus)])
-    #         model.to(args.device) # update
-            
+        model = LlamaForCausalLM.from_pretrained(model_name, token=access_token)
+        torch.save(model.state_dict(), filename)
+        logger.trace('save model')
+        del model
+        garbage_collect()
+    
+    # we use tensor parallel for loading llama
+    tokenizer = LlamaTokenizer.from_pretrained(ckpt_dir, token=access_token, use_fast=False, padding_side="left")
+    if use_meta_load:
+        with torch.device('meta'):
+            model = LlamaForCausalLM.from_pretrained(model_name)
+        weights = torch.load(filename, mmap=True, weights_only=True) # float32
+        logger.trace(f'load weights')
+        model.load_state_dict(weights, strict=True, assign=True) # device = cpu
+        logger.trace(f'apply weigths to dict: {len(weights)}')
+        model = model.to(args.device, dtype=torch.float16)#float16
+        garbage_collect()
+        del weights
     else:
-        # mpt-30b's tokenizer only has the fast version
-        use_fast = "mosaicml/mpt-30b" in ckpt_dir
-        # however, tensor parallel for running falcon will occur bugs
-        tokenizer = AutoTokenizer.from_pretrained(ckpt_dir, use_fast=use_fast, padding_side="left")
-        model = AutoModelForCausalLM.from_pretrained(ckpt_dir, device_map = 'balanced_low_0', torch_dtype=torch.bfloat16, trust_remote_code=True)
-        if tokenizer.pad_token_id is None:
-            if tokenizer.eos_token_id is not None:
-                tokenizer.pad_token_id = tokenizer.eos_token_id
-            else:
-                tokenizer.pad_token_id = 0
+    
+        model = LlamaForCausalLM.from_pretrained(ckpt_dir, token=access_token, low_cpu_mem_usage = True, torch_dtype=torch.float16)
+        # model = tp.tensor_parallel(model, [i for i in range(n_gpus)])
+        model.to(args.device) # update
 
+    tokenizer.pad_token_id = 0 if tokenizer.pad_token_id is None else tokenizer.pad_token_id
+    tokenizer.bos_token_id = 1
     
     model.eval()
 
@@ -310,9 +261,6 @@ def batch_infer(model, tokenizer, prompts):
     return answers
 
 def main(ckpt_dir: str, param_size: str, model_type: str):
-    timer_loading = Timer()
-    timer_computing = Timer()
-    timer_encoding = Timer()
     snapshot_memory = False
     update_model_file = True
     use_meta_load = True
@@ -323,10 +271,6 @@ def main(ckpt_dir: str, param_size: str, model_type: str):
 
     logger.trace(f'start loading: {ckpt_dir}')
     model, tokenizer = load(ckpt_dir, model_type,update_model_file, use_meta_load)
-    
-    # pprint(snapshot['segments'])
-    
-
 
     logger.trace(f'start evaluation: {ckpt_dir}')
     start_time = time.time()
