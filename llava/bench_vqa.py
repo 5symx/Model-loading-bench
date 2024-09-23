@@ -165,8 +165,8 @@ def eval_model(args):
     ans_file = open(answers_file, "w")
     for line in tqdm(questions):
         idx = line["question_id"]
-        if idx == 5:
-            break
+        # if idx == 5:
+        #     break
         image_file = line["image"]
         qs = line["text"]
         cur_prompt = qs
