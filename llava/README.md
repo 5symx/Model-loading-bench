@@ -4,7 +4,7 @@
 
 2. Run MM-VET evaluation refer to https://github.com/haotian-liu/LLaVA/blob/main/docs/Evaluation.md
    ```bash
-   python bench_vqa.py
+   python bench_vqa.py | tee output.log
    ```
 3. Conver the answer format for evaluation 
    ```bash
