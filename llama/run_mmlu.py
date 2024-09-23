@@ -8,7 +8,7 @@ import tensor_parallel as tp
 import torch
 from tqdm import tqdm
 from transformers import LlamaForCausalLM, LlamaTokenizer, AutoTokenizer, AutoModelForCausalLM
-
+from transformers import AutoProcessor, LlavaForConditionalGeneration
 # library imports
 import psutil
 
@@ -20,9 +20,7 @@ from rich.console import Console
 import warnings
 import pprint
 
-snapshot_memory = False
-if snapshot_memory:
-    torch.cuda.memory._record_memory_history()
+torch.cuda.memory._record_memory_history()
 # new_alloc = torch.cuda.memory.CUDAPluggableAllocator('alloc.so', 'my_malloc', 'my_free')
 # old = torch.cuda.memory.get_allocator_backend()
 # torch.cuda.memory.change_current_allocator(new_alloc)
@@ -58,19 +56,24 @@ logger = Logger()
 class Timer:
     def __init__(self):
         self.time = []
+        
+    def start(self):
+        self.temp = time.perf_counter()
+    def end(self):
+        self.time.append(time.perf_counter() - self.temp)
     def add(self, val:int):
         self.time.append(val)
     def result(self, msg: str):
-        print(f"{msg} : take {sum(self.time)  / len(self.time)} second ")
-        print(f"time list is  {self.time}  ")
+        logger.trace(f"{msg} : totally take {sum(self.time)} second ")
+        print(f"time list length is  {len(self.time)}  ")
+        print()
 
-# For getting quick result, only choose some of tasks for testing
 TASKS = [
         'abstract_algebra',
         'anatomy',
-        'astronomy',
-        'business_ethics',
-        'clinical_knowledge',
+        # 'astronomy',
+        # 'business_ethics',
+        # 'clinical_knowledge',
         # 'college_biology',
         # 'college_chemistry',
         # 'college_computer_science',
@@ -193,7 +196,7 @@ def garbage_collect():
     gc.collect()
     logger.trace('garbage collect')
 
-def load(ckpt_dir, model_type, update_model_file = False, use_meta_load = True):
+def load(ckpt_dir, model_type, update_model_file = True, use_meta_load = True):
     n_gpus = torch.cuda.device_count()
 
     if model_type == 'llama':
@@ -201,6 +204,7 @@ def load(ckpt_dir, model_type, update_model_file = False, use_meta_load = True):
         model_name = "meta-llama/Llama-2-7b-chat-hf"
         filename = './test_model.pt'
         if update_model_file:
+
             model = LlamaForCausalLM.from_pretrained(model_name, token=access_token)
             torch.save(model.state_dict(), filename)
             logger.trace('save model')
@@ -227,6 +231,35 @@ def load(ckpt_dir, model_type, update_model_file = False, use_meta_load = True):
 
         tokenizer.pad_token_id = 0 if tokenizer.pad_token_id is None else tokenizer.pad_token_id
         tokenizer.bos_token_id = 1
+    # if model_type == 'llava':
+    #     filename = './test_model.pt'
+    #     model_name = "llava-hf/llava-1.5-7b-hf"#"meta-llama/Llama-2-7b-chat-hf"#"TinyLlama/TinyLlama-1.1B-Chat-v1.0"# "openai/clip-vit-base-patch32" 
+    #     if update_model_file:
+
+    #         model = LlavaForConditionalGeneration.from_pretrained(model_name)
+    #         torch.save(model.state_dict(), filename)
+    #         logger.trace('save model')
+    #         del model
+    #         garbage_collect()
+        
+    #     # we use tensor parallel for loading llama
+    #     tokenizer = LlamaTokenizer.from_pretrained(ckpt_dir, token=access_token, use_fast=False, padding_side="left")
+    #     if use_meta_load:
+    #         with torch.device('meta'):
+    #             model = LlavaForConditionalGeneration.from_pretrained(model_name)
+    #         weights = torch.load(filename, mmap=True, weights_only=True) # float32
+    #         logger.trace(f'load weights')
+    #         model.load_state_dict(weights, strict=True, assign=True) # device = cpu
+    #         logger.trace(f'apply weigths to dict: {len(weights)}')
+    #         model = model.to(args.device, dtype=torch.float16)#float16
+    #         garbage_collect()
+    #         del weights
+    #     else:
+        
+    #         model = LlavaForConditionalGeneration.from_pretrained(ckpt_dir, token=access_token, low_cpu_mem_usage = True, torch_dtype=torch.float16)
+    #         # model = tp.tensor_parallel(model, [i for i in range(n_gpus)])
+    #         model.to(args.device) # update
+            
     else:
         # mpt-30b's tokenizer only has the fast version
         use_fast = "mosaicml/mpt-30b" in ckpt_dir
@@ -257,18 +290,31 @@ def batch_split(prompts, batch_num):
     return batch_prompts
 
 def batch_infer(model, tokenizer, prompts):
+    timer_encode = Timer()
+    timer_infer = Timer()
+    timer_decode = Timer()
     batch_size = 8
     answers = []
     for batch_input in tqdm(batch_split(prompts, batch_size)):
+        timer_encode.start()
         encode_inputs = prepare_input(tokenizer, batch_input)
+        timer_encode.end()
+        timer_infer.start()
         outputs = model.generate(**encode_inputs, max_new_tokens=1, pad_token_id=tokenizer.pad_token_id)
+        timer_infer.end()
+        timer_decode.start()
         answers.extend(tokenizer.batch_decode(outputs, skip_special_tokens=True))
+        timer_decode.end()
     answers = [answer[-1] for answer in answers]
+    logger.trace(f"output the result of time {timer_encode.result('encoding')} ; {timer_infer.result('inference')} ; {timer_decode.result('decoding')}")
     return answers
 
 def main(ckpt_dir: str, param_size: str, model_type: str):
-    
-    update_model_file = False
+    timer_loading = Timer()
+    timer_computing = Timer()
+    timer_encoding = Timer()
+    snapshot_memory = False
+    update_model_file = True
     use_meta_load = True
     logger.start()
 
@@ -276,7 +322,10 @@ def main(ckpt_dir: str, param_size: str, model_type: str):
     output_filename = 'run_results_%s_%sb.json' % (model_type, param_size)
 
     logger.trace(f'start loading: {ckpt_dir}')
-    model, tokenizer = load(ckpt_dir, model_type,update_model_file, use_meta_load)    
+    model, tokenizer = load(ckpt_dir, model_type,update_model_file, use_meta_load)
+    
+    # pprint(snapshot['segments'])
+    
 
 
     logger.trace(f'start evaluation: {ckpt_dir}')
@@ -301,17 +350,22 @@ def main(ckpt_dir: str, param_size: str, model_type: str):
             records.append({'prompt':prompt, 'answer':label})
         logger.trace(f'start inference %s ...' % task)
         pred_answers = batch_infer(model, tokenizer, [record['prompt'] for record in records])
+        logger.trace(f'finish inference %s ...' % task)
         gold_answers = [record['answer'] for record in records]
         run_results[task] = {'pred_answers':pred_answers, 'gold_answers':gold_answers}
 
     with open(output_filename, 'w') as f:
         json.dump(run_results, f, ensure_ascii=False, indent=2)
         
-    logger.trace(f'finish evaluation %s ...' % task)
+    logger.trace(f'finish evaluation all selected {len(TASKS) } task')
     compute_metric(output_filename)# accuracy
     end_time = time.time()
     print("total run time %.2f" % (end_time - start_time))
-    if snapshot_memory: # view on website https://pytorch.org/memory_viz
+    if snapshot_memory:
+        snapshot = torch.cuda.memory._snapshot()
+        from pickle import dump
+        dump(snapshot, open('snapshot.pickle', 'wb'))
+
         torch.cuda.memory._dump_snapshot("my_snapshot.pickle")
     
     
