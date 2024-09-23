@@ -8,11 +8,12 @@ import shortuuid
 import re
 from transformers import AutoProcessor, AutoTokenizer, LlavaForConditionalGeneration
 from prompt_conv import Conversation
-IMAGE_TOKEN_INDEX = -200
+
+# IMAGE_TOKEN_INDEX = -200
 DEFAULT_IMAGE_TOKEN = "<image>"
-DEFAULT_IMAGE_PATCH_TOKEN = "<im_patch>"
-DEFAULT_IM_START_TOKEN = "<im_start>"
-DEFAULT_IM_END_TOKEN = "<im_end>"
+# DEFAULT_IMAGE_PATCH_TOKEN = "<im_patch>"
+# DEFAULT_IM_START_TOKEN = "<im_start>"
+# DEFAULT_IM_END_TOKEN = "<im_end>"
 
 
 from PIL import Image
@@ -63,6 +64,21 @@ class Logger:
         self.t = t
 
 logger = Logger()
+
+class Timer:
+    def __init__(self):
+        self.time = []
+        
+    def start(self):
+        self.temp = time.perf_counter()
+    def end(self):
+        self.time.append(time.perf_counter() - self.temp)
+    def add(self, val:int):
+        self.time.append(val)
+    def result(self, msg: str):
+        logger.trace(f"{msg} : totally take {sum(self.time)} second ")
+        print(f"time list length is  {len(self.time)}  ")
+        print()
 
 def garbage_collect():
     import gc
@@ -151,6 +167,10 @@ def extract_assistant_response(text):
     return ""
 
 def eval_model(args):
+    timer_encode = Timer()
+    timer_infer = Timer()
+    timer_decode = Timer()
+
     # Model
     disable_torch_init()
     model_path = os.path.expanduser(args.model_path)
@@ -160,13 +180,15 @@ def eval_model(args):
 
     questions = [json.loads(q) for q in open(os.path.expanduser(args.question_file), "r")]
     questions = get_chunk(questions, args.num_chunks, args.chunk_idx)
-    answers_file = os.path.expanduser(args.answers_file)
-    os.makedirs(os.path.dirname(answers_file), exist_ok=True)
-    ans_file = open(answers_file, "w")
+    
+    run_results = {}
+
     for line in tqdm(questions):
+
+        timer_encode.start()
         idx = line["question_id"]
-        # if idx == 5:
-        #     break
+        if idx == 5:
+            break
         image_file = line["image"]
         qs = line["text"]
         cur_prompt = qs
@@ -191,22 +213,38 @@ def eval_model(args):
 
         processor = AutoProcessor.from_pretrained(model_path)
         input_ids = processor(images=image, text=prompt, return_tensors='pt').to(0, torch.float16)
+        
+        timer_encode.end()
+        timer_infer.start()
 
         with torch.inference_mode():
             output_ids = model.generate(**input_ids, max_new_tokens=1024, do_sample=False)
-        
+
+        timer_infer.end()
+        timer_decode.start()
+
         outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0].strip()
         outputs = extract_assistant_response(outputs)
-
         ans_id = shortuuid.uuid()
-        ans_file.write(json.dumps({"question_id": idx,
+        run_results[idx] = {"question_id": idx,
                                    "prompt": cur_prompt,
                                    "text": outputs,
                                    "answer_id": ans_id,
                                    "model_id": model_name,
-                                   "metadata": {}}) + "\n")
+                                   "metadata": {}}
+        
+        timer_decode.end()
+    # run_results = list(run_results.values())
+    answers_file = os.path.expanduser(args.answers_file)
+    os.makedirs(os.path.dirname(answers_file), exist_ok=True)
+    ans_file = open(answers_file, "w")
+    for _ , item in run_results.items():
+        ans_file.write(json.dumps(item)+ "\n")
         ans_file.flush()
-    ans_file.close()
+    
+    logger.trace(f"output the result of time {timer_encode.result('encoding')} ; {timer_infer.result('inference')} ; {timer_decode.result('decoding')}")
+    
+    # ans_file.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
