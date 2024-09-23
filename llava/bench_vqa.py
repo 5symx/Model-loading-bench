@@ -5,6 +5,7 @@ import os
 import json
 from tqdm import tqdm
 import shortuuid
+import re
 from transformers import AutoProcessor, AutoTokenizer, LlavaForConditionalGeneration
 from prompt_conv import Conversation
 IMAGE_TOKEN_INDEX = -200
@@ -18,6 +19,14 @@ from PIL import Image
 import math
 from enum import auto, Enum
 
+
+from rich.pretty import install as pretty_install
+from rich.traceback import install as traceback_install
+from rich.console import Console
+import warnings
+import psutil
+import time
+
 class SeparatorStyle(Enum):
     """Different separator style."""
     SINGLE = auto()
@@ -26,26 +35,85 @@ class SeparatorStyle(Enum):
     PLAIN = auto()
     LLAMA_2 = auto()
 
-def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, load_4bit=False, device_map="auto", device="cuda", use_flash_attn=False, **kwargs):
-    kwargs = {"device_map": device_map, **kwargs}
+class Logger:
+    def __init__(self):
+        self.t = time.perf_counter()
+        self.console = Console(log_time=True, log_time_format='%H:%M:%S-%f')
+        pretty_install(console=self.console)
+        traceback_install(console=self.console, extra_lines=1, width=self.console.width, word_wrap=False, indent_guides=False, suppress=[torch])
+        warnings.filterwarnings(action='ignore', category=UserWarning)
+        warnings.filterwarnings(action='ignore', category=DeprecationWarning)
+        self.process = psutil.Process(os.getpid())
 
+    def gb(self, val: float):
+        return round(val / 1024 / 1024 / 1024, 3)
+
+    def log(self, msg: str):
+        self.console.log(msg)
+
+    def start(self):
+        self.t = time.perf_counter()
+
+    def trace(self, msg: str):
+        cpu = self.gb(self.process.memory_info().rss) # # in bytes -> gb
+        gpu_info = torch.cuda.mem_get_info()
+        gpu = self.gb(gpu_info[1] - gpu_info[0])
+        t = time.perf_counter()
+        self.console.log(f'{round(t - self.t, 3)} {msg} (cpu: {cpu} gpu: {gpu})')
+        self.t = t
+
+logger = Logger()
+
+def garbage_collect():
+    import gc
+    gc.collect()
+    with torch.no_grad():
+        torch.cuda.empty_cache()
+    with torch.cuda.device('cuda'):
+        torch.cuda.empty_cache()
+        torch.cuda.ipc_collect()
+    gc.collect()
+    logger.trace('garbage collect')
+
+def load_pretrained_model(model_name, update_model_file = True, use_meta_load = True, **kwargs):
+    logger.trace('init model loading')
+    # kwargs = {"device_map": device_map, **kwargs}
+    kwargs['dtype'] = torch.float16
+    print(kwargs)
+
+    assert  'llava' in model_name.lower()
+    # Load LLaVA model
+    # tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False)
+    # model = LlavaForConditionalGeneration.from_pretrained(model_path, low_cpu_mem_usage=True, **kwargs)
+
+    filename = './test_model.pt'
+    if update_model_file:
+        model = LlavaForConditionalGeneration.from_pretrained(model_name)#,**kwargs)#, low_cpu_mem_usage=True, **kwargs)
+        torch.save(model.state_dict(), filename)
+        logger.trace('save model')
+        del model
+        garbage_collect()
     
-    kwargs['torch_dtype'] = torch.float16
+    # we use tensor parallel for loading llama
+    
+    if use_meta_load:
+        with torch.device('meta'):
+            model = LlavaForConditionalGeneration.from_pretrained(model_name)
+        weights = torch.load(filename, mmap=True, weights_only=True) # float32
+        logger.trace(f'load weights')
+        model.load_state_dict(weights, strict=True, assign=True) # device = cpu
+        logger.trace(f'apply weigths to dict: {len(weights)}')
+        model = model.to(args.device, **kwargs)#float16
+        garbage_collect()
+        del weights
+    else:
+        model = LlavaForConditionalGeneration.from_pretrained(model_name, low_cpu_mem_usage=True, **kwargs)
+        # model = tp.tensor_parallel(model, [i for i in range(n_gpus)])
+        model.to(args.device,**kwargs) # update
+    
+    model.eval()
 
-    if 'llava' in model_name.lower():
-        # Load LLaVA model
-        tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False)
-        model = LlavaForConditionalGeneration.from_pretrained(model_path, low_cpu_mem_usage=True, **kwargs)
-
-    if 'llava' in model_name.lower():
-        mm_use_im_start_end = getattr(model.config, "mm_use_im_start_end", False)
-        mm_use_im_patch_token = getattr(model.config, "mm_use_im_patch_token", True)
-        if mm_use_im_patch_token:
-            tokenizer.add_tokens([DEFAULT_IMAGE_PATCH_TOKEN], special_tokens=True)
-        if mm_use_im_start_end:
-            tokenizer.add_tokens([DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN], special_tokens=True)
-        model.resize_token_embeddings(len(tokenizer))
-
+    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
     return tokenizer, model
 
 def get_model_name_from_path(model_path):
@@ -75,14 +143,20 @@ def get_chunk(lst, n, k):
     chunks = split_list(lst, n)
     return chunks[k]
 
-
+def extract_assistant_response(text):
+    # Use regular expression to find the text after "ASSISTANT:"
+    match = re.search(r'ASSISTANT:\s*(.*)', text)
+    if match:
+        return match.group(1)
+    return ""
 
 def eval_model(args):
     # Model
     disable_torch_init()
     model_path = os.path.expanduser(args.model_path)
     model_name = get_model_name_from_path(model_path)
-    tokenizer, model = load_pretrained_model(model_path, args.model_base, model_name)
+    # print(model_name, model_path)
+    tokenizer, model = load_pretrained_model(model_path)
 
     questions = [json.loads(q) for q in open(os.path.expanduser(args.question_file), "r")]
     questions = get_chunk(questions, args.num_chunks, args.chunk_idx)
@@ -91,6 +165,8 @@ def eval_model(args):
     ans_file = open(answers_file, "w")
     for line in tqdm(questions):
         idx = line["question_id"]
+        if idx == 5:
+            break
         image_file = line["image"]
         qs = line["text"]
         cur_prompt = qs
@@ -118,8 +194,9 @@ def eval_model(args):
 
         with torch.inference_mode():
             output_ids = model.generate(**input_ids, max_new_tokens=1024, do_sample=False)
-
+        
         outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0].strip()
+        outputs = extract_assistant_response(outputs)
 
         ans_id = shortuuid.uuid()
         ans_file.write(json.dumps({"question_id": idx,
@@ -146,6 +223,7 @@ if __name__ == "__main__":
     parser.add_argument("--single-pred-prompt", action="store_true")
     parser.add_argument("--top_p", type=float, default=None)
     parser.add_argument("--num_beams", type=int, default=1)
+    parser.add_argument('--device', type=str, default='cuda', choices=['cpu', 'cuda'], required=False, help='load initial target')
     args = parser.parse_args()
 
     eval_model(args)
