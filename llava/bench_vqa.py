@@ -66,13 +66,15 @@ class Logger:
 logger = Logger()
 
 class Timer:
-    def __init__(self):
+    def __init__(self, tag:str):
         self.time = []
+        self.tag = tag
         
     def start(self):
         self.temp = time.perf_counter()
     def end(self):
         self.time.append(time.perf_counter() - self.temp)
+        # logger.trace(f"{self.tag} : take {sum(self.time)} second ")
     def add(self, val:int):
         self.time.append(val)
     def result(self, msg: str):
@@ -107,9 +109,10 @@ def load_pretrained_model(model_name, update_model_file = True, use_meta_load = 
         model = LlavaForConditionalGeneration.from_pretrained(model_name)#,**kwargs)#, low_cpu_mem_usage=True, **kwargs)
         torch.save(model.state_dict(), filename)
         logger.trace('save model')
+        print(model.base_model_prefix) # model # len(model.base_model_prefix) == 0
         del model
         garbage_collect()
-    
+        
     # we use tensor parallel for loading llama
     
     if use_meta_load:
@@ -167,9 +170,9 @@ def extract_assistant_response(text):
     return ""
 
 def eval_model(args):
-    timer_encode = Timer()
-    timer_infer = Timer()
-    timer_decode = Timer()
+    timer_encode = Timer("encoding")
+    timer_infer = Timer("inference")
+    timer_decode = Timer("decoding")
 
     # Model
     disable_torch_init()
@@ -181,13 +184,13 @@ def eval_model(args):
     questions = [json.loads(q) for q in open(os.path.expanduser(args.question_file), "r")]
     questions = get_chunk(questions, args.num_chunks, args.chunk_idx)
     
+    logger.trace(f'start evaluation: {model_name}')
     run_results = {}
-
     for line in tqdm(questions):
 
         timer_encode.start()
         idx = line["question_id"]
-        if idx == 5:
+        if idx == 10:
             break
         image_file = line["image"]
         qs = line["text"]

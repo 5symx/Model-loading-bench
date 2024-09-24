@@ -192,7 +192,7 @@ def load(ckpt_dir, model_type, update_model_file = True, use_meta_load = True):
     n_gpus = torch.cuda.device_count()
 
     assert  model_type == 'llama'
-    access_token = "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"
+    access_token = "hf_*"
     model_name = "meta-llama/Llama-2-7b-chat-hf"
     filename = './test_model.pt'
     if update_model_file:

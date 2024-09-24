@@ -6,7 +6,7 @@ def extract_originial_sentences(file_path):
         content = file.read()
         
     # Define the pattern to match the general format with a random string of varying lengths
-    pattern = r'\d{2}:\d{2}:\d{2}-\d{6} \d+\.\d+ [a-zA-Z_]+ .* \(cpu: \d+\.\d+ gpu: \d+\.\d+\) +run_mmlu\.py:\d+'
+    pattern = r'\d{2}:\d{2}:\d{2}-\d{6} \d+\.\d+ [a-zA-Z_]+ .* \(cpu: \d+\.\d+ gpu: \d+\.\d+\) +bench_vqa\.py:\d+'
     
     # Find all matches in the content
     matches = re.findall(pattern, content)
@@ -34,14 +34,14 @@ def extract_sentences(file_path):
     lines = content.split('\n')
     for line in lines:
         if 'totally take' in line:
-            pattern = r'\d{2}:\d{2}:\d{2}-\d{6} \d+\.\d+ (\w+) : totally take (\d+\.\d+) second .* \(cpu: (\d+\.\d+) gpu: (\d+\.\d+)\) +run_mmlu\.py:\d+'
-        elif 'run_mmlu' in line:
-            pattern = r'(\w){2}:\d{2}:\d{2}-\d{6} (\d+\.\d+) .* \(cpu: (\d+\.\d+) gpu: (\d+\.\d+)\) +run_mmlu\.py:\d+'
+            pattern = r'\d{2}:\d{2}:\d{2}-\d{6} \d+\.\d+ (\w+) : totally take (\d+\.\d+) second .* \(cpu: (\d+\.\d+) gpu: (\d+\.\d+)\) +bench_vqa\.py:\d+'
+        elif 'bench_vqa' in line:
+            pattern = r'(\w){2}:\d{2}:\d{2}-\d{6} (\d+\.\d+) .* \(cpu: (\d+\.\d+) gpu: (\d+\.\d+)\) +bench_vqa\.py:\d+'
         else:
             continue
         match = re.search(pattern, line)
         type_str = match.group(1)
-        mapped_value = mapping.get(type_str, 3)  # Default to -1 if not found
+        mapped_value = mapping.get(type_str, 3)  # Default to 3 if not found
         
         
         if 'totally take'  in line:
@@ -49,6 +49,7 @@ def extract_sentences(file_path):
             print("Match at index % s, % s" % (match.start(), match.end())) 
             print("Full match: % s" % (match.group(0))) 
             print("state match: % s" % (mapped_value)) 
+            print("state match: % s" % (match[2])) 
     # Define the pattern to match the general format with variations
     # pattern = r'\d{2}:\d{2}:\d{2}-\d{6} (\d+\.\d+) .* \(cpu: (\d+\.\d+) gpu: (\d+\.\d+)\) +run_mmlu\.py:\d+'
     
@@ -66,6 +67,7 @@ def extract_sentences(file_path):
         gpu_values.append(float(match[4]))
     
     return lengths, cpu_values, gpu_values, state
+
 
 def split_line(start_point, end_point,x_values):
     """
@@ -144,13 +146,12 @@ def plot_data(lengths, cpu_values, gpu_values,output_file, state):
             i = i + 3
         
         
-    plt.text(71,18,'GPU memory usage',horizontalalignment='right')
-    plt.text(71,2,'CPU memory usage',horizontalalignment='right')
+    plt.text(61,16,'GPU memory usage',horizontalalignment='right')
+    plt.text(61,2,'CPU memory usage',horizontalalignment='right')
+
     plt.text(25,25,'Model saving',horizontalalignment='right')
-
-
     plt.text(45,25,'Model loading',horizontalalignment='right')
-    plt.text(65,25,'Benchmarking',horizontalalignment='right')
+    plt.text(55,25,'Benchmarking',horizontalalignment='right')
     
     plt.xlabel('Eval Time (s)')
     plt.ylabel('Memory usage (GB)')
@@ -160,6 +161,7 @@ def plot_data(lengths, cpu_values, gpu_values,output_file, state):
 
     plt.savefig(output_file)
     plt.close()
+
 
 
 # Example usage

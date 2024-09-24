@@ -1,7 +1,0 @@
-10:59:43-727769 0.231 init model loading (cpu: 0.418 gpu: 0.261)                                                                                                                                                                        bench_vqa.py:62
-{'dtype': torch.float16}
-11:00:11-352665 27.627 save model (cpu: 27.058 gpu: 0.261)                                                                                                                                                                              bench_vqa.py:62
-11:00:12-834972 1.482 garbage collect (cpu: 0.719 gpu: 0.261)                                                                                                                                                                           bench_vqa.py:62
-11:00:13-730455 0.896 load weights (cpu: 0.722 gpu: 0.261)                                                                                                                                                                              bench_vqa.py:62
-11:00:13-752202 0.022 apply weigths to dict: 783 (cpu: 0.722 gpu: 0.261)                                                                                                                                                                bench_vqa.py:62
-11:00:17-286626 3.534 garbage collect (cpu: 27.37 gpu: 13.498)                                                                                                                                                                          bench_vqa.py:62
