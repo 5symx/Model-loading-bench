@@ -107,7 +107,7 @@ def load_model(model):
     logger.trace(f'apply weigths to dict: {len(weights)}')
     del weights # unload weigts since they were applied to model
 
-    model = model.to(device=args.device, dtype=torch.float16)
+    model = model.to(device=args.device, dtype=torch.float32)
     logger.trace('move to device target')
     model.eval()
     logger.trace('model eval')

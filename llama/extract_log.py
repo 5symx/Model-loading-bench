@@ -44,21 +44,12 @@ def extract_sentences(file_path):
         mapped_value = mapping.get(type_str, 3)  # Default to -1 if not found
         
         
-        if 'totally take'  in line:
-            print(match)
-            print("Match at index % s, % s" % (match.start(), match.end())) 
-            print("Full match: % s" % (match.group(0))) 
-            print("state match: % s" % (mapped_value)) 
-    # Define the pattern to match the general format with variations
-    # pattern = r'\d{2}:\d{2}:\d{2}-\d{6} (\d+\.\d+) .* \(cpu: (\d+\.\d+) gpu: (\d+\.\d+)\) +run_mmlu\.py:\d+'
-    
-    # Find all matches in the content
-    # matches = re.findall(pattern, content)
-    # print(matches)
-    
-    
-    # for match in matches:
-    #     # print(match)
+        # if 'totally take'  in line:
+        #     print(match)
+        #     print("Match at index % s, % s" % (match.start(), match.end())) 
+        #     print("Full match: % s" % (match.group(0))) 
+        #     print("state match: % s" % (mapped_value)) 
+
         
         state.append(float(mapped_value))
         lengths.append(float(match[2]))
@@ -119,20 +110,27 @@ def plot_data(lengths, cpu_values, gpu_values,output_file, state):
     cumulative_lengths = [sum(lengths[:i+1]) for i in range(len(lengths))]
     y_a = [cpu - cpu_values[0] for cpu in cpu_values]
     y_b = [gpu - gpu_values[0] for gpu in gpu_values]
-    print(len(state) , len(cumulative_lengths))
+    # print(len(state) , len(cumulative_lengths))
     plt.figure(figsize=(10, 5))
     # for i in range(len(state)-1):
     i = 0
     while i < len(state)-1:
-        print(state[i+1])
+        # print(state[i+1])
         if state[i+1] == 3.0:
             color = colors[str(state[i+1])]
             color_2 = colors_2[str(state[i+1])]
-            plt.plot([cumulative_lengths[i], cumulative_lengths[i+1]], [y_a[i], y_a[i+1]], color=color, linewidth=2)
-            plt.plot([cumulative_lengths[i], cumulative_lengths[i+1]], [y_b[i], y_b[i+1]], color=color_2, linewidth=2)
+            
+            plt.plot([cumulative_lengths[i], cumulative_lengths[i+1]], [y_a[i], y_a[i+1]], color=color, linewidth=2,marker='o',markersize=4)
+            if abs(cumulative_lengths[i+1] - cumulative_lengths[i]) > 1:
+                plt.text(cumulative_lengths[i+1], y_a[i+1], f'{(cumulative_lengths[i+1]-cumulative_lengths[i]):.2f}', fontsize=9, ha='right')
+                print(lengths[i+1])
+            plt.plot([cumulative_lengths[i], cumulative_lengths[i+1]], [y_b[i], y_b[i+1]], color=color_2, linewidth=2,marker='o',markersize=4)
+                
             i = i + 1
         else:
             x_values = [cumulative_lengths[i+1], cumulative_lengths[i+2],cumulative_lengths[i+3]]
+            plt.text(cumulative_lengths[i+2], y_a[i+1], f'{(cumulative_lengths[i+3] - cumulative_lengths[i+1]):.2f}', fontsize=9, ha='right')
+                
             split_points = split_line((cumulative_lengths[i],y_a[i]),(cumulative_lengths[i+3],y_a[i+1]),x_values)
             plt.plot([cumulative_lengths[i], cumulative_lengths[i+1]], [y_a[i], split_points[0][1]], color=colors[str(state[i+1])], linewidth=2)
             plt.plot([cumulative_lengths[i+1], cumulative_lengths[i+2]], [split_points[0][1], split_points[1][1]], color=colors[str(state[i+2])], linewidth=2)
@@ -144,13 +142,13 @@ def plot_data(lengths, cpu_values, gpu_values,output_file, state):
             i = i + 3
         
         
-    plt.text(71,18,'GPU memory usage',horizontalalignment='right')
-    plt.text(71,2,'CPU memory usage',horizontalalignment='right')
-    plt.text(25,25,'Model saving',horizontalalignment='right')
+    plt.text(101,15,'GPU memory usage',horizontalalignment='right')
+    plt.text(101,5,'CPU memory usage',horizontalalignment='right')
+    plt.text(25,23,'Model saving',horizontalalignment='right')
 
 
-    plt.text(45,25,'Model loading',horizontalalignment='right')
-    plt.text(65,25,'Benchmarking',horizontalalignment='right')
+    plt.text(65,23,'Model loading',horizontalalignment='right')
+    plt.text(105,23,'Benchmarking',horizontalalignment='right')
     
     plt.xlabel('Eval Time (s)')
     plt.ylabel('Memory usage (GB)')
