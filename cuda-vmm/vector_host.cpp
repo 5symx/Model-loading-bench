@@ -8,20 +8,20 @@
 // #include <thrust/fill.h>
 // #include <thrust/execution_policy.h>
 
-void dataUpdate(char* c_data, size_t GB){
-        //update first part 
-    for (size_t i = 0; i < 10; ++i) {
-        c_data[i] = static_cast<char>(i % 256 + 10); // Example modification
-    }
+// void dataUpdate(char* c_data, size_t GB){
+//         //update first part 
+//     for (size_t i = 0; i < 10; ++i) {
+//         c_data[i] = static_cast<char>(i % 256 + 10); // Example modification
+//     }
 
-    for (size_t i = 0; i < 10; ++i) {
-        std::cout << "c_data[" << i << "] first is h_data = " << static_cast<int>(c_data[i]) << std::endl;
-    };
-    for (size_t i = sizeof(char) * GB; i < (sizeof(char) * GB + 10); ++i) {
-        std::cout << "c_data[" << i << "] after half is d_data = " << static_cast<int>(c_data[i]) << std::endl;
-    };
+//     for (size_t i = 0; i < 10; ++i) {
+//         std::cout << "c_data[" << i << "] first is h_data = " << static_cast<int>(c_data[i]) << std::endl;
+//     };
+//     for (size_t i = sizeof(char) * GB; i < (sizeof(char) * GB + 10); ++i) {
+//         std::cout << "c_data[" << i << "] after half is d_data = " << static_cast<int>(c_data[i]) << std::endl;
+//     };
 
-}
+// }
 void dataCheck(char* c_data, char* d_data, size_t GB, cudaError_t err, int offset){
     //test for result after unmap
     err = cudaMemcpy(c_data+offset, d_data+offset , sizeof(char) * GB, cudaMemcpyDeviceToHost); // check last part
@@ -246,10 +246,14 @@ int main(){
     }
     nvtxRangePop();
 
-    std::cout << "---get update c_data with d_data 1-->2"  << std::endl;
+    
     // test for current data
-    if(checkflag)
+    if(checkflag){
+        std::cout << "---get update data  with d_data 1-->2"  << std::endl;
         dataCheck(c_data, d_data, 2*GB, err, 0);
+    }
+    std::cout << "---end"  << std::endl;
+
 
     status = cuMemUnmap(deviceptr, allocationSize);
     assert(status == CUDA_SUCCESS);
