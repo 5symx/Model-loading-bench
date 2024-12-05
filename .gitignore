@@ -2,3 +2,5 @@ llava/mm-vet/images/
 llava/test_model.pt
 llava/*.log
 llama/*.log
+cuda-vmm/*.nsys-rep
+
