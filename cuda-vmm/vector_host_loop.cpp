@@ -268,7 +268,7 @@ int main(){
     nvtxRangePushA("6.host to new vmm device");
     for (int i = 0; i < allocationSize / GB; i++){
         size_t offset_alloc = i * GB;
-        err = cudaMemcpy(d_data+offset_alloc, h_data+offset_alloc, GB, cudaMemcpyHostToDevice); // first to second
+        err = cudaMemcpy(d_data + offset_alloc, h_data + offset_alloc, GB, cudaMemcpyHostToDevice); // first to second
         if (err != cudaSuccess) {
             std::cerr << "Failed to copy memory from device to device: " << cudaGetErrorString(err) << std::endl;
             cudaFree(d_data);
@@ -280,7 +280,7 @@ int main(){
     nvtxRangePushA("6.1.host to new pure device");
     for (int i = 0; i < allocationSize / GB; i++){
         size_t offset_alloc = i * GB;
-        err = cudaMemcpy(g_data2[i], h_data+offset_alloc, GB, cudaMemcpyHostToDevice); // first to second
+        err = cudaMemcpy(g_data2[i], h_data + offset_alloc, GB, cudaMemcpyHostToDevice); // first to second
         if (err != cudaSuccess) {
             std::cerr << "Failed to copy memory from device to device: " << cudaGetErrorString(err) << std::endl;
             cudaFree(g_data2[i]);
