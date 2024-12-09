@@ -34,7 +34,7 @@ int main(){
     
     // constexpr size_t GB = 1 << 30;
     size_t GB = 1 << 30;
-    // GB *= 10;
+    GB /= 8;
     cudaSetDevice(0); //initialize cuda context
 
     // set param for allocation prop and granularity
@@ -56,10 +56,11 @@ int main(){
     assert(status == CUDA_SUCCESS);
 
     size_t granularity = std::max(granularityDevice, granularityHost);
+    std::cout << "granularity is " << granularity << "b \n";
 
     
-    const size_t allocationSize = 10*GB;
-    std::cout << "total allocation is " << allocationSize / GB << "GB \n";
+    const size_t allocationSize = 80*GB;// 10*GB
+    std::cout << "total allocation is " << allocationSize / GB << " 1/8 GB \n";
     assert(GB % granularity == 0);
     assert(allocationSize % granularity == 0);
     std::cout << "1.1.init vmm range for device"  << std::endl;
