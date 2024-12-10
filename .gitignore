@@ -4,3 +4,4 @@ llava/*.log
 llama/*.log
 cuda-vmm/*.nsys-rep
 cuda-vmm/*.csv
+hw/fio_testfile
