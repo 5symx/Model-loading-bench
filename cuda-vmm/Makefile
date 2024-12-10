@@ -33,8 +33,8 @@ vector_example: vector_main.cpp cuvector.cpp
 
 sync_example: sync_main.cu
 	$(NVCC) $^ -o $@ -lcuda -std=c++11
-host_example: vector_host_loop.cpp
+host_example: vector_loop_all.cpp
 	$(NVCC) $^ -o $@ -lcuda -std=c++11
 
 clean:
-	$(RM) vector_example sync_example
+	$(RM) vector_example sync_example host_example

@@ -34,7 +34,7 @@ int main(){
     
     // constexpr size_t GB = 1 << 30;
     size_t GB = 1 << 30;
-    GB /= 8;
+    // GB /= 8;
     cudaSetDevice(0); //initialize cuda context
 
     // set param for allocation prop and granularity
@@ -59,8 +59,8 @@ int main(){
     std::cout << "granularity is " << granularity << "b \n";
 
     
-    const size_t allocationSize = 80*GB;// 10*GB
-    std::cout << "total allocation is " << allocationSize / GB << " 1/8 GB \n";
+    const size_t allocationSize = 10*GB;// 10*GB
+    std::cout << "total allocation is " << allocationSize / GB << " GB \n";
     assert(GB % granularity == 0);
     assert(allocationSize % granularity == 0);
     std::cout << "1.1.init vmm range for device"  << std::endl;
@@ -213,7 +213,11 @@ int main(){
         }
     }
     nvtxRangePop();
-   std::cout << "---remap with the same allocationHandle with the first part"  << std::endl;
+
+    int rep_count = 10;
+    for (int i = 0; i < rep_count ; i++){
+
+        std::cout << "---remap with the same allocationHandle with the first part"  << std::endl;
         nvtxRangePushA("5.remap device Range");
         // remap
         prop.location.type = CU_MEM_LOCATION_TYPE_DEVICE; // update to device
@@ -242,17 +246,17 @@ int main(){
         }
         nvtxRangePop();
 
-        char* g_data2[allocationSize / GB]; 
-        nvtxRangePushA("5.1. pure new device range");
-        for (int i = 0; i < allocationSize / GB; i++){
-            size_t offset_alloc = i * GB;
-            err = cudaMalloc((void**)&g_data2[i], sizeof(char) * GB);
-            if (err != cudaSuccess) {
-                printf("cudaMalloc failed: %s\n", cudaGetErrorString(err));
-                return -1;
-            }
-        }
-        nvtxRangePop();
+        // char* g_data2[allocationSize / GB]; 
+        // nvtxRangePushA("5.1. pure new device range");
+        // for (int i = 0; i < allocationSize / GB; i++){
+        //     size_t offset_alloc = i * GB;
+        //     err = cudaMalloc((void**)&g_data2[i], sizeof(char) * GB);
+        //     if (err != cudaSuccess) {
+        //         printf("cudaMalloc failed: %s\n", cudaGetErrorString(err));
+        //         return -1;
+        //     }
+        // }
+        // nvtxRangePop();
 
         // if(checkflag){
         //     std::cout << "---new physical block"  << std::endl;
@@ -276,37 +280,37 @@ int main(){
         }
         nvtxRangePop();
 
-        nvtxRangePushA("6.1.host to new pure device");
-        for (int i = 0; i < allocationSize / GB; i++){
-            size_t offset_alloc = i * GB;
-            err = cudaMemcpy(g_data2[i], h_data + offset_alloc, GB, cudaMemcpyHostToDevice); // first to second
-            if (err != cudaSuccess) {
-                std::cerr << "Failed to copy memory from device to device: " << cudaGetErrorString(err) << std::endl;
-                cudaFree(g_data2[i]);
-                return -1;
-            }
-        }
-        nvtxRangePop();
+        // nvtxRangePushA("6.1.host to new pure device");
+        // for (int i = 0; i < allocationSize / GB; i++){
+        //     size_t offset_alloc = i * GB;
+        //     err = cudaMemcpy(g_data2[i], h_data + offset_alloc, GB, cudaMemcpyHostToDevice); // first to second
+        //     if (err != cudaSuccess) {
+        //         std::cerr << "Failed to copy memory from device to device: " << cudaGetErrorString(err) << std::endl;
+        //         cudaFree(g_data2[i]);
+        //         return -1;
+        //     }
+        // }
+        // nvtxRangePop();
         
         // test for current data
-        if(checkflag){
-            std::cout << "---get update data  with host - device"  << std::endl;
-            std::cout << "d_data check"  << std::endl;
-            dataCheck(c_data, d_data, 2*GB, err, 0);
-            std::cout << "g_data2 check"  << std::endl;
-            for (int i = 0; i < 2; i++)
-                dataCheck(c_data, g_data2[i], GB, err, 0);
-        }
+        // if(checkflag){
+        //     std::cout << "---get update data  with host - device"  << std::endl;
+        //     std::cout << "d_data check"  << std::endl;
+        //     dataCheck(c_data, d_data, 2*GB, err, 0);
+        //     std::cout << "g_data2 check"  << std::endl;
+        //     for (int i = 0; i < 2; i++)
+        //         dataCheck(c_data, g_data2[i], GB, err, 0);
+        // }
 
         std::cout << "---end"  << std::endl;
 
-        for (int i = 0; i < allocationSize / GB; ++i) {
-            cudaError_t err = cudaFree(g_data2[i]);
-            if (err != cudaSuccess) {
-                printf("cudaFree failed for block %d: %s\n", i, cudaGetErrorString(err));
-                return -1;
-            }
-        }
+        // for (int i = 0; i < allocationSize / GB; ++i) {
+        //     cudaError_t err = cudaFree(g_data2[i]);
+        //     if (err != cudaSuccess) {
+        //         printf("cudaFree failed for block %d: %s\n", i, cudaGetErrorString(err));
+        //         return -1;
+        //     }
+        // }
 
         nvtxRangePushA("4.free unmap Range");
         for (int i = 0; i < allocationSize / GB; i++){
@@ -317,7 +321,8 @@ int main(){
         nvtxRangePop();
 
 
-    assert(status == CUDA_SUCCESS);
+    }
+        
     status = cuMemAddressFree(deviceptr, allocationSize);
     assert(status == CUDA_SUCCESS);
     err = cudaFreeHost(h_data);
