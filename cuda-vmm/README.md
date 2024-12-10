@@ -6,6 +6,7 @@
 3. get cuda api from Nvidia Nsight system event view
 4. csv file process with `python data_proc.py`
 
+![alt text](https://github.com/5symx/Model-loading-bench/blob/main/cuda-vmm/cuda-vmm-example.png?raw=true)
 # REFERENCE
 
 [API](https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__VA.html#group__CUDA__VA)
