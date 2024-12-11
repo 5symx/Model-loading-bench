@@ -5,3 +5,14 @@ llama/*.log
 cuda-vmm/*.nsys-rep
 cuda-vmm/*.csv
 hw/fio_testfile
+# Ignore all executable files
+cuda-gds/*.exe
+cuda-gds/*.out
+cuda-gds/*.app
+cuda-gds/*.bin
+
+# Ignore object files
+cuda-gds/*.o
+
+# Ignore specific log files
+cuda-gds/cufile.log
