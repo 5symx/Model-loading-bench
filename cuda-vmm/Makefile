@@ -26,7 +26,7 @@
 
 NVCC ?= nvcc
 
-all: vector_example sync_example host_example
+all: vector_example sync_example host_example context_example memMapIpc_kernel.ptx
 
 vector_example: vector_main.cpp cuvector.cpp
 	$(NVCC) $^ -o $@ -lcuda -std=c++11
@@ -35,6 +35,10 @@ sync_example: sync_main.cu
 	$(NVCC) $^ -o $@ -lcuda -std=c++11
 host_example: vector_loop_all.cpp
 	$(NVCC) $^ -o $@ -lcuda -std=c++11
+context_example: context_vmm.cpp 
+	$(NVCC) $^ -o $@ -lcuda -std=c++11
 
+memMapIpc_kernel.ptx: memMapIpc_kernel.cu
+	$(NVCC) -ptx -o $@  $^ -lcuda -std=c++11
 clean:
-	$(RM) vector_example sync_example host_example
+	$(RM) vector_example sync_example host_example context_example memMapIpc_kernel.ptx
