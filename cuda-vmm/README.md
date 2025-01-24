@@ -7,6 +7,11 @@
 4. csv file process with `python data_proc.py`
 
 ![alt text](https://github.com/5symx/Model-loading-bench/blob/main/cuda-vmm/cuda-vmm-example.png?raw=true)
+
+# cuda virtual context for VA memory access
+1. update Makefile and `make`
+2. execute `./context_example`
+
 # REFERENCE
 
 [API](https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__VA.html#group__CUDA__VA)
