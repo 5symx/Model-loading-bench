@@ -24,13 +24,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+#include <stdint.h>
 
 // Device code
-extern "C" __global__ void memMapIpc_kernel(char *ptr, int sz, char val)
+extern "C" __global__ void memMapIpc_kernel(char *ptr, uintptr_t sz, char val)
 {
     // Dummy kernel
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    uintptr_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     for (; idx < sz; idx += (gridDim.x * blockDim.x)) {
         ptr[idx] = val;
     }
