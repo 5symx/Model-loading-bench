@@ -16,3 +16,8 @@ cuda-gds/*.o
 
 # Ignore specific log files
 cuda-gds/cufile.log
+
+service-compute-gpu/app-compute-cuda/*.nsys-rep
+service-compute-gpu/app-compute-cuda/*.csv
+service-compute-gpu/app-compute-cuda/test
+service-compute-gpu/app-compute-cuda/test.ptx
