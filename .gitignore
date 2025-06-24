@@ -4,6 +4,9 @@ llava/*.log
 llama/*.log
 cuda-vmm/*.nsys-rep
 cuda-vmm/*.csv
+cuda-vmm/memMapIPC/bin/
+cuda-vmm/memMapIPC/data/
+
 hw/fio_testfile
 
 __pycache__/
