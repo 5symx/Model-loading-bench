@@ -5,6 +5,10 @@ llama/*.log
 cuda-vmm/*.nsys-rep
 cuda-vmm/*.csv
 hw/fio_testfile
+
+__pycache__/
+llava/__pycache__/
+
 # Ignore all executable files
 cuda-gds/*.exe
 cuda-gds/*.out
